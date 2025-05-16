@@ -1,9 +1,21 @@
-# SolidQueue Autoscaler
+<!--
+  Ankane‑style README template 🇯🇵
+  --------------------------------
+  • Write in imperative voice ("Add", "Run", "Create").
+  • Keep sentences ≤ 15 words.
+  • One code fence per logical example.
+  • Delete ALL comments (<!-- ... -->) before publishing.
 
-Automatically right-sizes your Solid Queue worker fleet by queue *latency*.
+\-->
 
-[![Gem Version](https://badge.fury.io/rb/solidqueue-autoscaler.svg)](https://rubygems.org/gems/solidqueue-autoscaler)
-[![Build](https://github.com/your-org/solidqueue-autoscaler/actions/workflows/ci.yml/badge.svg)](https://github.com/your-org/solidqueue-autoscaler/actions)
+# GemName
+
+<!-- ⚠️ Replace `GemName` with your gem’s actual name -->
+
+One‑sentence tagline describing what the gem does.
+
+[![Gem Version](https://badge.fury.io/rb/<gemname>.svg)](https://rubygems.org/gems/<gemname>)
+[![Build](https://github.com/<user>/<gemname>/actions/workflows/ci.yml/badge.svg)](https://github.com/<user>/<gemname>/actions)
 [![Ruby](https://img.shields.io/badge/ruby-%3E%3D_3.2.0-brightgreen.svg)](https://www.ruby-lang.org/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
@@ -11,10 +23,12 @@ Automatically right-sizes your Solid Queue worker fleet by queue *latency*.
 
 ## Installation
 
+<!-- Always the first real section. Use exact wording below. -->
+
 Add this line to your application’s **Gemfile**:
 
 ```ruby
-gem "solidqueue-autoscaler"
+gem "<gemname>"
 ```
 
 And run:
@@ -27,50 +41,54 @@ bundle install
 
 ## Quick Start
 
+<!-- Provide the fastest path. Avoid prose between code fences. -->
+
 ```bash
-rails g solidqueue:autoscaler:install
+rails g <gemname>:install   # interactive installer
 ```
-
-The installer:
-
-* Creates `config/initializers/solidqueue_autoscaler.rb` with helpful comments
-* Appends `config/solid_queue/recurring.yml` so the autoscaler runs each hour
-* Prints any required environment variables (for example `RENDER_TOKEN`)
-
-Deploy and you’re done—no extra cron jobs needed.
 
 ---
 
 ## Usage
 
-The installer schedules the autoscaler to run **hourly** via Solid Queue recurring jobs. You normally don’t need to call it yourself, but the API is handy for custom dashboards or manual scaling.
+<!-- Include at least one basic & one advanced example. -->
 
 ```ruby
-# ask how many workers you should run (does not scale)
-SolidQueue::Autoscaler.recommended_instances
+# basic example – returns an array of results
+Model.search "term"
 ```
 
 ```ruby
-# scale manually with your own adapter
-count = SolidQueue::Autoscaler.recommended_instances
-MyAdapter.scale!(count)
+# advanced example – disable misspellings and highlight results
+Model.search "term", misspellings: false, highlight: {tag: "<mark>"}
 ```
+
+### Style Guidelines for Examples
+
+<!-- Keep guideline list short. -->
+
+* Prefer **single‑purpose** code fences.
+* Inline comments lowercase, ≤60 chars.
+* Two‑space indentation.
 
 ### Options
 
-| Option                     | Description                                | Default |
-| -------------------------- | ------------------------------------------ | ------- |
-| `min_instances:`           | Minimum workers to keep                    | `5`     |
-| `max_instances:`           | Hard ceiling on workers                    | `20`    |
-| `queue_latency_threshold:` | Seconds oldest job may wait before scaling | `30`    |
-| `scale_increment:`         | Base step size when scaling                | `5`     |
-| `scale_down_threshold:`    | Jobs/min decrease per −1 instance          | `100`   |
+<!-- ≤10 rows. One‑line descriptions. -->
+
+| Option          | Description                | Default |
+| --------------- | -------------------------- | ------- |
+| `misspellings:` | Enable fuzzy matching      | `true`  |
+| `highlight:`    | Return highlighted results | `false` |
+| `load:`         | Eager‑load records         | `true`  |
 
 ---
 
 ## Upgrading
 
-* **0.x → 1.0** – Re‑run the install generator and review your initializer diff.
+<!-- Bullet each breaking change. -->
+
+* **1.0 → 2.0** – Rename `foo` to `bar`.
+* **0.x → 1.0** – Run the install generator and migrate.
 
 ---
 
@@ -83,3 +101,18 @@ Everyone is encouraged to help improve this project. Fork, make changes, and ope
 ## License
 
 MIT
+
+---
+
+<!--
+README CHECKLIST – delete after validating ✔️
+- Header: name, tagline, ≤4 badges
+- Installation section with Gemfile snippet
+- Quick Start code block (generator or rake task)
+- Usage: basic + advanced examples
+- Options table ≤10 rows
+- Upgrading notes if needed
+- Ends with Contributing & License
+- Sentences ≤15 words, imperative voice
+- No marketing fluff beyond tagline
+-->
