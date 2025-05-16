@@ -23,10 +23,6 @@ Then run:
 bundle install
 ```
 
----
-
-## Quick Start
-
 ```bash
 rails g solidqueue:autoscaler:install
 ```
@@ -34,27 +30,28 @@ rails g solidqueue:autoscaler:install
 The installer
 
 * creates `config/initializers/solidqueue_autoscaler.rb` with comments
-* appends `config/solid_queue/recurring.yml` so the autoscaler runs each hour
-* prints any required env vars (e.g. `RENDER_TOKEN`)
-
-Deploy and you’re done—no extra cron jobs.
+* creates `app/jobs/scale_solid_queue_workers_job.rb`
+* appends `config/solid_queue/recurring.yml` so the autoscaler runs **every minute**
 
 ---
 
 ## Usage
 
-The autoscaler runs hourly via Solid Queue recurring jobs. Use the API for dashboards or manual scaling.
+The autoscaler job runs every minute via Solid Queue recurring tasks.  You normally don’t need to call it yourself.  If you prefer full control, enqueue your own wrapper job:
 
 ```ruby
-# how many workers should we run? (no scaling side‑effect)
-SolidQueue::Autoscaler.recommended_instances
+# app/jobs/scale_solid_queue_workers_job.rb
+class ScaleSolidQueueWorkersJob < ApplicationJob
+  queue_as :maintenance
+
+  def perform
+    desired = SolidQueue::Autoscaler.recommended_instances
+    MyAdapter.scale!(desired)
+  end
+end
 ```
 
-```ruby
-# manual scaling with a custom adapter
-count = SolidQueue::Autoscaler.recommended_instances
-MyAdapter.scale!(count)
-```
+Add this job to `config/solid_queue/recurring.yml` if you want to override the built‑in schedule.
 
 ---
 
@@ -63,10 +60,17 @@ MyAdapter.scale!(count)
 | Metric                                | Pros                                                                                                                                                                                | Cons                                                                                                                                                                      |
 | ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Latency** (age of oldest ready job) | • Directly reflects what *users* feel—long latency means real waiting time.  <br>• Independent of queue throughput spikes; a short burst that clears quickly won’t trigger scaling. | • Harder to convert into worker count without historical throughput (“n boxes?”).  <br>• A single slow-running job can make the queue look “slow” and cause over‑scaling. |
-| **Depth** (number of ready jobs)      | • Simple to reason about—divide backlog by processing rate to size the fleet.  <br>                                              | • Sudden spikes can overscale and thrash resources.  <br>• Doesn’t account for job complexity—100 tiny jobs ≠ 100 video transcodes.                                       |
+| **Depth** (number of ready jobs)      | • Simple to reason about—divide backlog by processing rate to size the fleet.  <br>• Popular with job‑queue autoscalers like HireFire.                                              | • Sudden spikes can overscale and thrash resources.  <br>• Doesn’t account for job complexity—100 tiny jobs ≠ 100 video transcodes.                                       |
 
 > **Recommendation**: Start with `:latency`—it’s safer for user‑facing workloads. Switch to `:depth` for high‑throughput, uniform jobs where backlog size maps cleanly to capacity.
 
+\------ | ---- | ---- |
+\| **Latency** (age of oldest ready job) | • Directly reflects what *users* feel—long latency means real waiting time. ([judoscale.com](https://judoscale.com/blog/scaling-python-task-queues?utm_source=chatgpt.com), [github.com](https://github.com/sidekiq/sidekiq/wiki/Scaling-Sidekiq?utm_source=chatgpt.com))  <br>• Independent of queue throughput spikes; a short burst that clears quickly won’t trigger scaling. ([scaleops.com](https://scaleops.com/blog/kubernetes-autoscaling/?utm_source=chatgpt.com)) | • Harder to convert into worker count without historical throughput (“n boxes?”). ([software.land](https://software.land/throughput-vs-latency/?utm_source=chatgpt.com), [reddit.com](https://www.reddit.com/r/kubernetes/comments/1dfqabf/what_metrics_do_you_use_for_auto_scale/?utm_source=chatgpt.com))  <br>• A single slow-running job can make the queue look “slow” and cause over‑scaling. ([learn.microsoft.com](https://learn.microsoft.com/en-us/azure/service-bus-messaging/service-bus-performance-improvements?utm_source=chatgpt.com), [github.com](https://github.com/sidekiq/sidekiq/wiki/Ent-Historical-Metrics?utm_source=chatgpt.com)) |
+\| **Depth** (number of ready jobs) | • Simple to reason about—divide backlog by processing rate to size the fleet. ([help.hirefire.io](https://help.hirefire.io/article/52-hirefire-job-queue-size-any-language?utm_source=chatgpt.com), [docs.aws.amazon.com](https://docs.aws.amazon.com/autoscaling/ec2/userguide/as-using-sqs-queue.html?utm_source=chatgpt.com))  <br>• Popular with hosted autoscalers like HireFire. ([help.hirefire.io](https://help.hirefire.io/article/46-getting-started?utm_source=chatgpt.com)) | • Sudden spikes can overscale and thrash resources. ([elasticscale.com](https://elasticscale.com/blog/autoscale-ecs-with-sqs-queue-why-target-tracking-beats-step-scaling/?utm_source=chatgpt.com))  <br>• Doesn’t account for job complexity—100 tiny jobs ≠ 100 video transcodes. ([learn.microsoft.com](https://learn.microsoft.com/en-us/azure/service-bus-messaging/service-bus-performance-improvements?utm_source=chatgpt.com)) |
+
+> **Recommendation**: Start with `:latency`—it’s safer for user-facing workloads. Switch to `:depth` for high‑throughput, uniform jobs where backlog size maps cleanly to capacity.
+
+---
 
 ## Configuration options
 
