@@ -43,7 +43,7 @@ Deploy and you’re done—no extra cron jobs needed.
 
 ## Usage
 
-The installer schedules the autoscaler to run **hourly** via Solid Queue recurring jobs. You normally don’t need to call it yourself, but the API is handy for custom dashboards or manual scaling.
+The installer schedules the autoscaler to run via Solid Queue recurring jobs. You normally don’t need to call it yourself, but the API is handy for custom dashboards or manual scaling.
 
 ```ruby
 # ask how many workers you should run (does not scale)
